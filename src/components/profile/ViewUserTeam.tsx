@@ -6,7 +6,7 @@ import {
     CardTitle,
 } from "~/components/ui/card"
 import type { Team } from '@prisma/client';
-// import TeamRow from './TeamRow';
+import TeamRow from './TeamRow';
 // import CreateTeamModal from './CreateTeamModal';
 
 type Props = {
@@ -27,9 +27,16 @@ export default function ViewUserTeam({ teams }: Props) {
                     </div>
                 </CardTitle>
             </CardHeader>
-            <CardContent>
-                {/* <TeamRow teams={teams} /> */}
-            </CardContent>
+            {teams.length < 1 && (
+                <div className="flex items-center justify-center">
+                    <p className="mb-2 text-l text-left text-muted-foreground">Not currently in any teams</p>
+                </div>
+            )}
+            {teams.length > 0 && (
+                <CardContent>
+                    <TeamRow teams={teams} />
+                </CardContent>
+            )}
         </Card>
     </>
   )
