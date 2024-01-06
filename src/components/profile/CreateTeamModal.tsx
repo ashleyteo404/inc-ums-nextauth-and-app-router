@@ -47,8 +47,6 @@ const CreateTeamModal = ({ userId }: Props) => {
         loading: "Creating team...",
         success:  () => {
           // Reload the page upon successful submission
-          // router.replace(router.asPath);
-          // window.location.reload();
           router.refresh();
           return "Team created :)";
         },

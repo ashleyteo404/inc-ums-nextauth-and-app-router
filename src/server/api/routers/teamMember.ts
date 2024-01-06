@@ -11,22 +11,35 @@ const teamMemberRouter = createTRPCRouter({
     .input(
       z.object({
         teamId: z.string(),
+        userId: z.string()
       })
     )
     .query(async ({ ctx, input }) => {
       const teamMembers = await ctx.db.teamMember.findMany({
         where: { teamId: input.teamId },
+        include: {
+          userFk: true, // include the related user
+        },
       });
   
-      // Extract memberIds from teamMembers
-      const memberIds = teamMembers.map((teamMember) => teamMember.userId);
+      const matchingTeamMember = teamMembers.find(
+        (teamMember) => teamMember.userId === input.userId
+      );
+
+      if (!matchingTeamMember) {
+        throw new Error("User does not have access to this team");
+      } else {
+        const formattedTeamMembers = teamMembers.map((teamMember) => ({
+          id: teamMember.userFk.id,
+          name: teamMember.userFk.name,
+          email: teamMember.userFk.email,
+          image: teamMember.userFk.image,
+          role: teamMember.role,
+          teamMemberId: teamMember.teamMemberId
+        }));
   
-      // Fetch members using the extracted memberIds
-      const members = await ctx.db.user.findMany({
-        where: { id: { in: memberIds } },
-      });
-      // change this to later include the role in the return object
-      return members;
+        return formattedTeamMembers;
+      }
     }),
 
   addTeamMember: protectedProcedure
