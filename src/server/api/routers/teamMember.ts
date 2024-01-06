@@ -6,7 +6,7 @@ import {
   protectedProcedure
 } from "~/server/api/trpc";
 
-export const teamMemberRouter = createTRPCRouter({
+const teamMemberRouter = createTRPCRouter({
   getTeamMembers: protectedProcedure
     .input(
       z.object({
@@ -90,3 +90,5 @@ export const teamMemberRouter = createTRPCRouter({
       }
     }),
 });
+
+export default teamMemberRouter

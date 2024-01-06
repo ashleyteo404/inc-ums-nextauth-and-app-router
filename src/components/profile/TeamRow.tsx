@@ -10,26 +10,30 @@ type Props = {
     teams: Team[];
 }
 
-export default function TeamRow({ teams }: Props) {
+const TeamRow = ({ teams }: Props) => {
   return (
     <div className="space-y-8">
       {teams.map((team) => {
         return (
           <div key={team.teamId} className="flex items-center">
-            <TeamRowDetails team={team} />
-            {/* Team Name: {team.name} */}
-            <div className="flex ml-auto space-x-3" >
-              {/* <Link href={`/team/${team.teamId}`}>
-                <Button variant="outline">
-                  View Members
-                </Button>
-              </Link> */}
-              {/* <EditTeamModal team={team} /> */}
-              {/* <DeleteTeamModal teamId={team.teamId} /> */}
-            </div>
+            <Link href={`/team/${team.teamId}`} >
+              <TeamRowDetails team={team} />
+              {/* Team Name: {team.name} */}
+              <div className="flex ml-auto space-x-3" >
+                {/* <Link href={`/team/${team.teamId}`}>
+                  <Button variant="outline">
+                    View Members
+                  </Button>
+                </Link> */}
+                {/* <EditTeamModal team={team} /> */}
+                {/* <DeleteTeamModal teamId={team.teamId} /> */}
+              </div>
+            </Link>
           </div>
         )
       })}
     </div>
   )
 }
+
+export default TeamRow

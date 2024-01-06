@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { TRPCReactProvider } from "~/trpc/react";
 import SessionProvider from "~/context/sessionProvider";
 import Navbar from "~/components/Navbar";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,6 +34,7 @@ export default function RootLayout({
                 <Navbar />
               </div>
               {children}
+              <Toaster richColors />
             </main>
           </TRPCReactProvider>
         </SessionProvider>

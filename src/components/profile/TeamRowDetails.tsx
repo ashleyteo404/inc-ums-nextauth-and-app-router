@@ -4,14 +4,14 @@ import {
     AvatarFallback,
     AvatarImage,
 } from "~/components/ui/avatar"
-import { Team } from '@prisma/client';
+import type { Team } from '@prisma/client';
 import { format } from 'date-fns';
 
 type Props = {
     team: Team;
 }
 
-export default function TeamRowDetails({ team }: Props) {
+const TeamRowDetails = ({ team }: Props) => {
   return (
     <>
         <div className="flex items-center justify-items-start">
@@ -30,3 +30,5 @@ export default function TeamRowDetails({ team }: Props) {
     </>
   )
 }
+
+export default TeamRowDetails

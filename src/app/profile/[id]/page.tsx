@@ -15,7 +15,7 @@ export default async function profile () {
   const session = await getServerSession(authOptions)
   if (!session) {
     redirect("/api/auth/signin");
-  }  
+  }
   
   const teams = await api.team.getUserTeam.query({ userId: session.user.id });
 
@@ -31,7 +31,7 @@ export default async function profile () {
           <p className="text-xl text-left text-muted-foreground">{session.user.email}</p>
         </div>
       </div>
-      <ViewUserTeam teams={teams} />
+      <ViewUserTeam userId={session.user.id} teams={teams} />
     </>
   )
 }

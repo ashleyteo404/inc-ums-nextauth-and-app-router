@@ -5,7 +5,7 @@ import {
   protectedProcedure,
 } from "~/server/api/trpc";
 
-export const teamRouter = createTRPCRouter({
+const teamRouter = createTRPCRouter({
   getUserTeam: protectedProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -42,16 +42,29 @@ export const teamRouter = createTRPCRouter({
       try {
         const { userId, name, description } = input;
 
-        const team = await ctx.db.team.create({
-          data: {
-            createdBy: userId,
-            name: name,
-            description: description?.trim() !== "" ? description : null
-          }
-        });
-        return { id: team.teamId };  
+        const result = await ctx.db.$transaction(async () => {
+          const team = await ctx.db.team.create({
+            data: {
+              createdBy: userId,
+              name: name,
+              description: description?.trim() !== "" ? description : null
+            }
+          });
+
+          return ctx.db.teamMember.create({
+            data: {
+              role: "owner",
+              teamId: team.teamId,
+              userId: userId
+            }
+          })
+        })
+
+        return result;  
       } catch (error) {
         throw new Error("Failed to create team :(");
       }
     }),
 });
+
+export default teamRouter
