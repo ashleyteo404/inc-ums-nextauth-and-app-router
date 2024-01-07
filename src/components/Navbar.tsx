@@ -40,7 +40,7 @@ export default function Navbar() {
                         Home
                     </Button>
                 </Link>
-                {session !== null && (<Link href={`/profile/${session.user.id}`} className="flex items-center">
+                {session && session.user && (<Link href={`/profile/${session.user.id}`} className="flex items-center">
                     <Button variant={"link"}>
                         Profile
                     </Button>
