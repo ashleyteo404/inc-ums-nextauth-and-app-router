@@ -16,19 +16,14 @@ const TeamRow = ({ teams }: Props) => {
       {teams.map((team) => {
         return (
           <div key={team.teamId} className="flex items-center">
-            <Link href={`/team/${team.teamId}`} >
               <TeamRowDetails team={team} />
-              {/* Team Name: {team.name} */}
               <div className="flex ml-auto space-x-3" >
-                {/* <Link href={`/team/${team.teamId}`}>
-                  <Button variant="outline">
+                <Link href={`/team/${team.teamId}`}>
+                  <Button variant="default">
                     View Members
                   </Button>
-                </Link> */}
-                {/* <EditTeamModal team={team} /> */}
-                {/* <DeleteTeamModal teamId={team.teamId} /> */}
+                </Link>
               </div>
-            </Link>
           </div>
         )
       })}

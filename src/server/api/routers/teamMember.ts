@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 import { z } from "zod";
 
 import {
@@ -27,7 +27,7 @@ const teamMemberRouter = createTRPCRouter({
       );
 
       if (!matchingTeamMember) {
-        throw new Error("User does not have access to this team");
+        throw new Error("You do not have access to this team >:(");
       } else {
         const formattedTeamMembers = teamMembers.map((teamMember) => ({
           id: teamMember.userFk.id,
@@ -45,27 +45,32 @@ const teamMemberRouter = createTRPCRouter({
   addTeamMember: protectedProcedure
     .input(
       z.object({
+        userRole: z.nativeEnum(Role),
         teamId: z.string(),
         email: z.string().email()
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const { userRole, teamId, email } = input;
+
+      if (userRole === "normal") throw new Error("Unauthorised, you do not have perms >:(");
+
       try {
         const memberId = await ctx.db.user.findFirst({
           where: {
-            email: input.email
+            email: email
           },
           select: {
             id: true // Include only the memberId in the result
           }
         })
-        
+
         if(!memberId) throw new Error("Member does not exist");
         else {
           const teamMember = await ctx.db.teamMember.create({
             data: {
               role: "normal",
-              teamId: input.teamId,
+              teamId: teamId,
               userId: memberId.id
             }
           });
@@ -75,13 +80,73 @@ const teamMemberRouter = createTRPCRouter({
         // P2002 is the error code a unique constraint violation
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
           throw new Error("Member is already in team :(");
+        } else if (error === "Member does not exist") {
+        throw new Error("Member does not exist");
         } else {
           throw new Error("Failed to add member to team :(");
         }
       }
     }),
   
+  updateRole: protectedProcedure
+    .input(
+      z.object({
+        userRole: z.nativeEnum(Role),
+        teamMemberId: z.string(),
+        role: z.nativeEnum(Role)
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userRole, teamMemberId, role } = input;
+
+      if (userRole === "normal") throw new Error("Unauthorised, you do not have perms >:(");
+
+      try {
+        const updatedTeamMember = await ctx.db.teamMember.update({
+          where: { 
+            teamMemberId: teamMemberId
+          },
+          data: {
+            role: role
+          }
+        });
+        if (!updatedTeamMember) {
+          throw new Error("Team member not found :(");
+        }
+        return { success: true };
+      } catch (error) {
+        throw new Error("Failed to update admin status of member :(");
+      }
+    }),
+
   removeTeamMember: protectedProcedure
+    .input(
+      z.object({
+        userRole: z.nativeEnum(Role),
+        teamMemberId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userRole, teamMemberId } = input;
+
+      if (userRole === "normal") throw new Error("Unauthorised, you do not have perms >:(");
+
+      try {
+        const removedTeamMember = await ctx.db.teamMember.delete({
+          where: { 
+            teamMemberId: teamMemberId
+          }
+        });
+        if (!removedTeamMember) {
+          throw new Error("Team member not found :(");
+        }
+        return { success: true };
+      } catch (error) {
+        throw new Error("Failed to remove member from team :(");
+      }
+    }),
+
+  leaveTeam: protectedProcedure
     .input(
       z.object({
         teamMemberId: z.string(),
@@ -96,6 +161,20 @@ const teamMemberRouter = createTRPCRouter({
         });
         if (!removedTeamMember) {
           throw new Error("Team member not found :(");
+        }
+
+        // delete team if there are no remaining member
+        const remainingTeamMembers = await ctx.db.teamMember.findMany({
+          where: {
+            teamId: removedTeamMember.teamId
+          }
+        })
+        if (remainingTeamMembers.length === 0) {
+          await ctx.db.team.delete({
+            where: {
+              teamId: removedTeamMember.teamId
+            }
+          })
         }
         return { success: true };
       } catch (error) {

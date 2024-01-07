@@ -1,3 +1,4 @@
+import { Role } from "@prisma/client";
 import { z } from "zod";
 
 import {
@@ -65,6 +66,65 @@ const teamRouter = createTRPCRouter({
         throw new Error("Failed to create team :(");
       }
     }),
+
+  updateTeam: protectedProcedure
+    .input(
+      z.object({ 
+        userRole: z.nativeEnum(Role),
+        teamId: z.string(),
+        name: z.string().min(1),
+        description: z.string().nullable()
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userRole, teamId, name, description } = input;
+
+      if (userRole === "normal") throw new Error("Unauthorised, you do not have perms >:(");
+
+      try {
+        const team = await ctx.db.team.update({
+          where: { teamId: teamId },
+          data: {
+            name: name,
+            description: description?.trim() !== "" ? description : null
+          }
+        });
+        return { id: team.teamId };
+      } catch (error) {
+        throw new Error("Failed to update team :(");
+      }
+    }),
+  
+  deleteTeam: protectedProcedure
+    .input(
+      z.object({
+        userRole: z.nativeEnum(Role),
+        teamId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userRole, teamId } = input;
+
+      if (userRole !== "owner") throw new Error("Unauthorised, you do not have perms >:(");
+
+      try {
+        const result = await ctx.db.$transaction([
+          ctx.db.teamMember.deleteMany({
+            where: {
+              teamId: teamId,
+            },
+          }),
+          ctx.db.team.delete({
+            where: { teamId: teamId },
+          }),
+        ]);
+  
+        return result;
+      } catch (error) {
+        throw new Error("Failed to delete team :(");
+      }
+    }),
+
 });
 
 export default teamRouter
