@@ -10,7 +10,6 @@ import AddTeamMember from '~/components/team/members/AddTeamMember';
 import { Separator } from '~/components/ui/separator';
 import LeaveTeamModal from '~/components/team/members/LeaveTeamModal';
 import { toast } from 'sonner';
-import { Edit, Edit2, Edit2Icon, Edit3, Edit3Icon } from 'lucide-react';
 import EditTeamModal from '~/components/team/EditTeamModal';
 import DeleteTeamModal from '~/components/team/DeleteTeamModal';
 
