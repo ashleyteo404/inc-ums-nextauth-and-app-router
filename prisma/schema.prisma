@@ -50,18 +50,6 @@ enum Role {
     normal
 }
 
-model Post {
-    id        Int      @id @default(sequence())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
-
-    @@index([name])
-}
-
 // Necessary for Next auth
 model Account {
     id                String  @id @default(cuid())
@@ -97,12 +85,13 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
-    posts         Post[]
 
+    hashedPassword String
     createdTeam   Team[]
     team          TeamMember[]
 }
 
+// not needed for credentials provider
 model VerificationToken {
     identifier String
     token      String   @unique

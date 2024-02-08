@@ -1,4 +1,5 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { User, Prisma } from "@prisma/client";
 import {
   getServerSession,
   type DefaultSession,
@@ -6,9 +7,12 @@ import {
 } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 import GitHubProvider from "next-auth/providers/github";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 import { env } from "~/env";
 import { db } from "~/server/db";
+
+import bcrypt from "bcryptjs-react";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -38,23 +42,93 @@ declare module "next-auth" {
  */
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session: ({ session, user }) => ({
+    // async signIn({ user, account, profile, email, credentials }) {
+    //   // const isAllowedToSignIn = true
+    //   // if (isAllowedToSignIn) {
+    //   //   console.log("user2", user)
+    //   //   return true
+    //   // } else {
+    //   //   // Return false to display a default error message
+    //   //   return false
+    //   //   // Or you can return a URL to redirect to:
+    //   //   // return '/unauthorized'
+    //   // }
+    //   if (user.id) {
+    //     return `/profile/${user.id}`;
+    //   } else {
+    //     return true;
+    //   }
+    // },
+    session: ({ session, token }) => ({
       ...session,
       user: {
         ...session.user,
-        id: user.id,
+        // default
+        // id: user.id
+        // but that causes TypeError: Cannot read properties of undefined (reading 'id')
+        id: token.sub // represents user id
+        // alternatively, you can do token.id but you will need the async jwt function below
       },
     }),
+    // async jwt({ token, account, user }) {
+    //   // Persist the OAuth access_token and or the user id to the token right after signin
+    //   if (account) {
+    //     token.accessToken = account.access_token
+    //     token.id = user?.id
+    //   }
+    //   return token
+    // },
   },
   adapter: PrismaAdapter(db),
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
-    }),
-    GitHubProvider({
-      clientId: env.GITHUB_ID,
-      clientSecret: env.GITHUB_SECRET,
+    // DiscordProvider({
+    //   clientId: env.DISCORD_CLIENT_ID,
+    //   clientSecret: env.DISCORD_CLIENT_SECRET,
+    // }),
+    // GitHubProvider({
+    //   clientId: env.GITHUB_ID,
+    //   clientSecret: env.GITHUB_SECRET,
+    // }),
+    CredentialsProvider({
+      // The name to display on the sign in form (e.g. "Sign in with...")
+      name: "Credentials",
+      // `credentials` is used to generate a form on the sign in page.
+      // You can specify which fields should be submitted, by adding keys to the `credentials` object.
+      // e.g. domain, username, password, 2FA token, etc.
+      // You can pass any HTML attribute to the <input> tag through the object.
+      credentials: {
+        email: { label: "Email", type: "Email", placeholder: "johndoe@example.com" },
+        password: { label: "Password", type: "Password" }
+      },
+      async authorize(credentials, req) {
+        // Add logic here to look up the user from the credentials supplied
+        const { email, password } = credentials as {
+          email: string;
+          password: string;
+        }
+
+        if (!email || !password) {
+          return null;
+        }
+
+        const user: User = await db.user.findUnique({
+          where: {
+            email: email
+          }
+        });
+
+        if (user) {
+          const passwordsMatch = await bcrypt.compare(password, user.hashedPassword);
+          
+          if (!passwordsMatch) {
+            return null;
+          }
+
+          return user;
+        } else {
+          return null;
+        }
+      }
     }),
     /**
      * ...add more providers here.
@@ -66,6 +140,11 @@ export const authOptions: NextAuthOptions = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
+  session: {
+    strategy: "jwt"
+  }, 
+  secret: env.NEXTAUTH_SECRET,
+  debug: env.NODE_ENV === "development"
 };
 
 /**

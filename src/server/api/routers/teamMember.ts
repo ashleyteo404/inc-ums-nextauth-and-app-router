@@ -1,12 +1,38 @@
-import { Prisma, Role } from "@prisma/client";
+import { Prisma, Role, TeamMember } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import {
   createTRPCRouter,
   protectedProcedure
 } from "~/server/api/trpc";
+import { api } from "~/trpc/server";
+import { teamMemberWithUserFk } from "~/types/types";
 
 const teamMemberRouter = createTRPCRouter({
+  getUserRole: protectedProcedure
+    .input(
+      z.object({
+        teamId: z.string()
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { teamId } = input;
+      const userId = ctx.session.user.id;
+
+      const userRole = await ctx.db.teamMember.findFirst({
+        where: {
+          userId: userId,
+          teamId: teamId
+        },
+        select: {
+          role: true
+        }
+      })
+      if (!userRole) throw new TRPCError({ code: "NOT_FOUND", message: "User not found :(" });
+      else return userRole.role;
+    }),
+
   getTeamMembers: protectedProcedure
     .input(
       z.object({
@@ -15,7 +41,23 @@ const teamMemberRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const teamMembers = await ctx.db.teamMember.findMany({
+      const teamMembers: ({
+        userFk: {
+            id: string;
+            name: string | null;
+            email: string | null;
+            emailVerified: Date | null;
+            image: string | null;
+            hashedPassword: string;
+        };
+    } & {
+        teamMemberId: string;
+        createdAt: Date;
+        updatedAt: Date;
+        role: Role;
+        teamId: string;
+        userId: string;
+    })[] = await ctx.db.teamMember.findMany({
         where: { teamId: input.teamId },
         include: {
           userFk: true, // include the related user
@@ -23,11 +65,11 @@ const teamMemberRouter = createTRPCRouter({
       });
   
       const matchingTeamMember = teamMembers.find(
-        (teamMember) => teamMember.userId === input.userId
+        (teamMember: TeamMember) => teamMember.userId === input.userId
       );
 
       if (!matchingTeamMember) {
-        throw new Error("You do not have access to this team >:(");
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "You do not have access to this team >:(" });
       } else {
         const formattedTeamMembers = teamMembers.map((teamMember) => ({
           id: teamMember.userFk.id,
@@ -35,7 +77,8 @@ const teamMemberRouter = createTRPCRouter({
           email: teamMember.userFk.email,
           image: teamMember.userFk.image,
           role: teamMember.role,
-          teamMemberId: teamMember.teamMemberId
+          teamMemberId: teamMember.teamMemberId,
+          teamId: teamMember.teamId
         }));
   
         return formattedTeamMembers;
@@ -45,15 +88,16 @@ const teamMemberRouter = createTRPCRouter({
   addTeamMember: protectedProcedure
     .input(
       z.object({
-        userRole: z.nativeEnum(Role),
         teamId: z.string(),
         email: z.string().email()
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { userRole, teamId, email } = input;
+      const { teamId, email } = input;
 
-      if (userRole === "normal") throw new Error("Unauthorised, you do not have perms >:(");
+      const userRole: Role = await api.teamMember.getUserRole.query({ teamId: teamId });
+      if (!userRole) throw new TRPCError({ code: "NOT_FOUND", message: "User not found :(" })
+      if (userRole === "normal") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorised, you do not have perms >:("});
 
       try {
         const memberId = await ctx.db.user.findFirst({
@@ -61,11 +105,11 @@ const teamMemberRouter = createTRPCRouter({
             email: email
           },
           select: {
-            id: true // Include only the memberId in the result
+            id: true // include only the memberId in the result
           }
         })
 
-        if(!memberId) throw new Error("Member does not exist");
+        if(!memberId) throw new TRPCError({ code: "NOT_FOUND", message: "Member does not exist :(" });
         else {
           const teamMember = await ctx.db.teamMember.create({
             data: {
@@ -80,8 +124,6 @@ const teamMemberRouter = createTRPCRouter({
         // P2002 is the error code a unique constraint violation
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
           throw new Error("Member is already in team :(");
-        } else if (error === "Member does not exist") {
-        throw new Error("Member does not exist");
         } else {
           throw new Error("Failed to add member to team :(");
         }
@@ -91,15 +133,17 @@ const teamMemberRouter = createTRPCRouter({
   updateRole: protectedProcedure
     .input(
       z.object({
-        userRole: z.nativeEnum(Role),
+        teamId: z.string(),
         teamMemberId: z.string(),
         role: z.nativeEnum(Role)
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { userRole, teamMemberId, role } = input;
+      const { teamId, teamMemberId, role } = input;
 
-      if (userRole === "normal") throw new Error("Unauthorised, you do not have perms >:(");
+      const userRole: Role = await api.teamMember.getUserRole.query({ teamId: teamId });
+      if (!userRole) throw new TRPCError({ code: "NOT_FOUND", message: "User not found :(" })
+      if (userRole === "normal") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorised, you do not have perms >:("});
 
       try {
         const updatedTeamMember = await ctx.db.teamMember.update({
@@ -122,14 +166,16 @@ const teamMemberRouter = createTRPCRouter({
   removeTeamMember: protectedProcedure
     .input(
       z.object({
-        userRole: z.nativeEnum(Role),
+        teamId: z.string(),
         teamMemberId: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { userRole, teamMemberId } = input;
+      const { teamId, teamMemberId } = input;
 
-      if (userRole === "normal") throw new Error("Unauthorised, you do not have perms >:(");
+      const userRole: Role = await api.teamMember.getUserRole.query({ teamId: teamId });
+      if (!userRole) throw new TRPCError({ code: "NOT_FOUND", message: "User not found :(" })
+      if (userRole === "normal") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorised, you do not have perms >:("});
 
       try {
         const removedTeamMember = await ctx.db.teamMember.delete({

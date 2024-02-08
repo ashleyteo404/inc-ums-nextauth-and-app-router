@@ -30,7 +30,7 @@ export default function RootLayout({
         <SessionProvider>
           <TRPCReactProvider cookies={cookies().toString()}>
             <main>
-              <div className="mr-4">
+              <div>
                 <Navbar />
               </div>
               {children}

@@ -16,22 +16,20 @@ import { api } from "~/trpc/react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { TRPCClientError } from "@trpc/client";
-import type { Role } from "@prisma/client";
 import { useSession } from "next-auth/react";
 
 type Props = {
-    userRole: Role;
     teamId: string
 }
 
-export default function DeleteTeamModal({ userRole, teamId }: Props) {
+export default function DeleteTeamModal({ teamId }: Props) {
   const router = useRouter();
   const { data: session } = useSession();
 
   const deleteTeam = api.team.deleteTeam.useMutation();
 
   const handleSubmit = async () => {
-    toast.promise(deleteTeam.mutateAsync({ userRole: userRole, teamId: teamId }), {
+    toast.promise(deleteTeam.mutateAsync({ teamId: teamId }), {
         loading: "Deleting team...",
         success:  () => {
             // Reload the page upon successful submission

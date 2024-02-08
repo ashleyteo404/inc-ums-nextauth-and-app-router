@@ -1,5 +1,5 @@
 import React from 'react'
-import { api } from '~/trpc/server';
+import { api } from "~/trpc/server";
 import { db } from '~/server/db';
 import { redirect } from 'next/navigation';
 import type { teamMemberWithUserFk } from '~/types/types';
@@ -18,22 +18,23 @@ type Props = {
 }
 
 export default async function TeamMembers ({ params }: Props) {
-    const team = await db.team.findFirst({where: {teamId: params.id}})
-    if (!team) redirect("/");
+  // const { team, teamMembers, user } = await fetchData({ params });
+  const team = await db.team.findFirst({where: {teamId: params.id}})
+  if (!team) redirect("/");
 
-    const session = await getServerSession(authOptions);
-    if (!session) redirect("/api/auth/signin");
+  const session = await getServerSession(authOptions);
+  if (!session) redirect("/api/auth/signin");
 
-    let teamMembers:teamMemberWithUserFk[] = [];
-    teamMembers = await api.teamMember.getTeamMembers.query({ teamId: params.id, userId: session.user.id });
+  let teamMembers:teamMemberWithUserFk[] = [];
+  teamMembers = await api.teamMember.getTeamMembers.query({ teamId: params.id, userId: session.user.id });
 
-    const user = teamMembers.find(
-      (member) => member.id === session.user.id
-    );
-    if (!user) {
-      toast.error("Unauthorised access. You are not in this team!");
-      redirect("/");
-    }    
+  const user = teamMembers.find(
+    (member) => member.id === session.user.id
+  );
+  if (!user) {
+    toast.error("Unauthorised access. You are not in this team!");
+    redirect("/");
+  }   
 
     return (
     <>
@@ -41,10 +42,10 @@ export default async function TeamMembers ({ params }: Props) {
         <div className="flex justify-between items-center m-4">
           <div className="flex items-center">
             <h1 className="font-bold text-4xl m-4">{team.name}</h1>
-            <EditTeamModal userRole={user.role} team={team} />
+            <EditTeamModal team={team} />
           </div>
           <div className="flex items-center space-x-3">
-            {user.role === "owner" && (<DeleteTeamModal userRole={user.role} teamId={team.teamId} />)}
+            {user.role === "owner" && (<DeleteTeamModal teamId={team.teamId} />)}
             <LeaveTeamModal teamMemberId={user.teamMemberId} />
           </div>
         </div>
@@ -54,8 +55,8 @@ export default async function TeamMembers ({ params }: Props) {
         <Separator />
       </div>
       <h2 className="font-bold text-2xl m-4">{team.name}&apos;s Members</h2>
-      {user.role !== "normal" && (<AddTeamMember userRole={user.role} teamId={team.teamId} />)}
-      <TeamMembersTable userRole={user.role} team={team} members={teamMembers} />
+      {user.role !== "normal" && (<AddTeamMember teamId={team.teamId} />)}
+      <TeamMembersTable team={team} members={teamMembers} />
     </>
   )
 }

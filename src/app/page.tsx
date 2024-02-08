@@ -1,5 +1,5 @@
 import Link from "next/link";
-// import { redirect } from "next/navigation";
+import TestProtectedProcedure from "~/components/TestProtectedProcedure";
 
 import { Button } from "~/components/ui/button";
 import { getServerAuthSession } from "~/server/auth";
@@ -27,13 +27,23 @@ export default async function Home() {
           </Button>
         </Link>
         <Link
-          href={session ? "/api/auth/signin" : "/api/auth/signout"}
+          // href={session ? "/api/auth/signout" : "/api/auth/signin"}
+          href={session ? "/api/auth/signout" : "/signIn"}
+          className="rounded-full bg-white/10 px-10 pt-3 font-semibold no-underline transition hover:bg-white/20"
+        >
+          <Button variant={"link"} className="bg-[#300D4F] text-muted">
+            {session ? "Sign Out" : "Sign In"}
+          </Button>
+        </Link>
+        <Link
+          href={"/register"}
           className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
         >
           <Button variant={"link"} className="bg-[#300D4F] text-muted">
-            {session ? "Sign out" : "Sign in"}
+            Register
           </Button>
         </Link>
+        <TestProtectedProcedure />
       </div>
     </div>
   </main>

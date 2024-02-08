@@ -11,10 +11,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from '~/trpc/react';
 import { TRPCClientError } from '@trpc/client';
 import { useRouter } from 'next/navigation';
-import type { Role } from '@prisma/client';
 
 type Props = {
-  userRole: Role;
   teamId: string
 }
 
@@ -22,7 +20,7 @@ const formSchema = z.object({
     memberEmail: z.string().email(),
 })
   
-export default function AddTeamMember({ userRole, teamId }: Props) {
+export default function AddTeamMember({ teamId }: Props) {
   const router = useRouter();
 
   const addTeamMember = api.teamMember.addTeamMember.useMutation();
@@ -40,7 +38,7 @@ export default function AddTeamMember({ userRole, teamId }: Props) {
       email: memberEmail
     }
 
-    toast.promise(addTeamMember.mutateAsync({ userRole: userRole, teamId: teamId, ...data}), {
+    toast.promise(addTeamMember.mutateAsync({ teamId: teamId, ...data}), {
         loading: "Adding member...",
         success: () => {
           // Reload the page upon successful submission

@@ -20,7 +20,7 @@ const TeamRow = ({ teams }: Props) => {
               <div className="flex ml-auto space-x-3" >
                 <Link href={`/team/${team.teamId}`}>
                   <Button variant="default">
-                    View Members
+                    View Team
                   </Button>
                 </Link>
               </div>

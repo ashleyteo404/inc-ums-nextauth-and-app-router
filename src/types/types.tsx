@@ -7,4 +7,5 @@ export type teamMemberWithUserFk = {
     image: string | null;
     role: Role;
     teamMemberId: string;
+    teamId: string;
 }

@@ -23,11 +23,10 @@ import { teamSchema } from "~/types/schema";
 import { TRPCClientError } from "@trpc/client";
 
 type Props = {
-    userRole: Role;
     team: Team
 }
 
-export default function EditTeamModal({ userRole, team }: Props) {
+export default function EditTeamModal({ team }: Props) {
   const router = useRouter();
 
   const updateTeam = api.team.updateTeam.useMutation();
@@ -49,7 +48,7 @@ export default function EditTeamModal({ userRole, team }: Props) {
       if (path === "name") toast.error("Please enter a name.");
       return;
     } else {
-      toast.promise(updateTeam.mutateAsync({ userRole: userRole, teamId: team.teamId, ...data }), {
+      toast.promise(updateTeam.mutateAsync({ teamId: team.teamId, ...data }), {
         loading: "Updating team...",
         success:  () => {
           // Reload the page upon successful submission

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 
 function AuthButton() {
@@ -13,17 +13,25 @@ function AuthButton() {
                 <div className="ml-1 mr-3 font-bold">
                     {session?.user?.name} 
                 </div>
-                <Button variant={"link"} className="bg-[#300D4F] text-muted" onClick={() => signOut()}>
-                    Sign Out
-                </Button>
+                <Link
+                  href={"/api/auth/signout"}
+                >
+                    <Button variant={"link"} className="bg-[#300D4F] text-muted">
+                        Sign Out
+                    </Button>
+                </Link>
             </>
         )
     } else {
         return (
             <>
-                <Button variant={"link"} className="bg-[#300D4F] text-muted" onClick={() => signIn()}>
-                    Sign In
-                </Button>
+                <Link
+                  href={"/signIn"}
+                >
+                    <Button variant={"link"} className="bg-[#300D4F] text-muted">
+                        Sign In
+                    </Button>
+                </Link>
             </>
         )
     }

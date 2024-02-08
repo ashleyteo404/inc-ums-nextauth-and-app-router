@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import React from 'react'
 import ViewUserTeam from '~/components/profile/ViewUserTeam';
 import { authOptions } from '~/server/auth';
-import { api } from '~/trpc/server';
+import { api } from "~/trpc/server";
 import {
   Avatar,
   AvatarFallback,

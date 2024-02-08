@@ -1,10 +1,12 @@
-import { Role } from "@prisma/client";
+import type { Role, Team, TeamMember } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import {
   createTRPCRouter,
   protectedProcedure,
 } from "~/server/api/trpc";
+import { api } from "~/trpc/server";
 
 const teamRouter = createTRPCRouter({
   getUserTeam: protectedProcedure
@@ -16,14 +18,14 @@ const teamRouter = createTRPCRouter({
         }
       })
 
-      const teams = await Promise.all(
-        memberOf.map(async (currentTeam) => {
+      const teams: Team[] = await Promise.all(
+        memberOf.map(async (currentTeam: TeamMember) => {
           const team = await ctx.db.team.findFirst({
             where: {
               teamId: currentTeam.teamId
             }
           })
-          if (!team) throw new Error(`Team not found :(\nteamId: ${currentTeam.teamId}`);
+          if (!team) throw new TRPCError({ code: "NOT_FOUND", message: `Team not found :(\nteamId: ${currentTeam.teamId}` });
           else return team;
         })
       )
@@ -43,7 +45,7 @@ const teamRouter = createTRPCRouter({
       try {
         const { userId, name, description } = input;
 
-        const result = await ctx.db.$transaction(async () => {
+        await ctx.db.$transaction(async () => {
           const team = await ctx.db.team.create({
             data: {
               createdBy: userId,
@@ -61,7 +63,7 @@ const teamRouter = createTRPCRouter({
           })
         })
 
-        return result;  
+        return;  
       } catch (error) {
         throw new Error("Failed to create team :(");
       }
@@ -70,16 +72,17 @@ const teamRouter = createTRPCRouter({
   updateTeam: protectedProcedure
     .input(
       z.object({ 
-        userRole: z.nativeEnum(Role),
         teamId: z.string(),
         name: z.string().min(1),
         description: z.string().nullable()
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { userRole, teamId, name, description } = input;
+      const { teamId, name, description } = input;
 
-      if (userRole === "normal") throw new Error("Unauthorised, you do not have perms >:(");
+      const userRole: Role = await api.teamMember.getUserRole.query({ teamId: teamId });
+      if (!userRole) throw new TRPCError({ code: "NOT_FOUND", message: "User not found :(" })
+      if (userRole === "normal") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorised, you do not have perms >:("});
 
       try {
         const team = await ctx.db.team.update({
@@ -98,17 +101,18 @@ const teamRouter = createTRPCRouter({
   deleteTeam: protectedProcedure
     .input(
       z.object({
-        userRole: z.nativeEnum(Role),
         teamId: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { userRole, teamId } = input;
+      const { teamId } = input;
 
-      if (userRole !== "owner") throw new Error("Unauthorised, you do not have perms >:(");
+      const userRole: Role = await api.teamMember.getUserRole.query({ teamId: teamId });
+      if (!userRole) throw new TRPCError({ code: "NOT_FOUND", message: "User not found :(" })
+      if (userRole !== "owner") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorised, you do not have perms >:("});
 
       try {
-        const result = await ctx.db.$transaction([
+        await ctx.db.$transaction([
           ctx.db.teamMember.deleteMany({
             where: {
               teamId: teamId,
@@ -119,7 +123,7 @@ const teamRouter = createTRPCRouter({
           }),
         ]);
   
-        return result;
+        return;
       } catch (error) {
         throw new Error("Failed to delete team :(");
       }

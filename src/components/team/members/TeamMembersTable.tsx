@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import type { Role, Team } from '@prisma/client';
+import type { Team } from '@prisma/client';
 import {
   Table,
   TableBody,
@@ -16,12 +16,11 @@ import type { teamMemberWithUserFk } from '~/types/types';
 import MemberDropdownMenu from './MemberDropdownMenu';
 
 type Props = {
-  userRole: Role;
   team: Team;
   members: teamMemberWithUserFk[];
 }
 
-export default function TeamMembersTable ({ userRole, team, members }: Props) {
+export default function TeamMembersTable ({ team, members }: Props) {
   return (
     <div className="m-4">
       <Table>
@@ -42,7 +41,7 @@ export default function TeamMembersTable ({ userRole, team, members }: Props) {
               <TableCell>{member.name}</TableCell>
               <TableCell>{member.email}</TableCell>
               <TableCell>{member.role.charAt(0).toUpperCase() + member.role.slice(1).toLowerCase()}</TableCell>
-              <TableCell><MemberDropdownMenu userRole={userRole} member={member} /></TableCell>
+              <TableCell><MemberDropdownMenu member={member} /></TableCell>
             </TableRow>
           ))}
         </TableBody>
