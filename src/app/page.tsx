@@ -27,7 +27,8 @@ export default async function Home() {
           </Button>
         </Link>
         <Link
-          // href={session ? "/api/auth/signout" : "/api/auth/signin"}
+          // /api/auth/signin is the api route for default sign in, inclusive of its own sign in page
+          // however I want to customise my sign in page
           href={session ? "/api/auth/signout" : "/signIn"}
           className="rounded-full bg-white/10 px-10 pt-3 font-semibold no-underline transition hover:bg-white/20"
         >

@@ -18,7 +18,7 @@ import { useState } from "react"
 import { api } from "~/trpc/react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import type { Role, Team } from "@prisma/client";
+import type { Team } from "@prisma/client";
 import { teamSchema } from "~/types/schema";
 import { TRPCClientError } from "@trpc/client";
 

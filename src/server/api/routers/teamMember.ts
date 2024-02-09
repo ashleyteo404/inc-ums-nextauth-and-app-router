@@ -1,4 +1,4 @@
-import { Prisma, Role, TeamMember } from "@prisma/client";
+import { Prisma, Role, type TeamMember } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
@@ -7,7 +7,6 @@ import {
   protectedProcedure
 } from "~/server/api/trpc";
 import { api } from "~/trpc/server";
-import { teamMemberWithUserFk } from "~/types/types";
 
 const teamMemberRouter = createTRPCRouter({
   getUserRole: protectedProcedure

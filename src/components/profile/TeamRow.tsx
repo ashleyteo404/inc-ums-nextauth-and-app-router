@@ -1,8 +1,6 @@
 import React from 'react'
 import type { Team } from '@prisma/client';
 import TeamRowDetails from './TeamRowDetails';
-// import EditTeamModal from './EditTeamModal';
-// import DeleteTeamModal from './DeleteTeamModal';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 

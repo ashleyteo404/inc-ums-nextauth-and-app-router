@@ -2,14 +2,16 @@ import React from 'react'
 import { api } from "~/trpc/server";
 import { db } from '~/server/db';
 import { redirect } from 'next/navigation';
-import type { teamMemberWithUserFk } from '~/types/types';
-import TeamMembersTable from '~/components/team/members/TeamMembersTable';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '~/server/auth';
-import AddTeamMember from '~/components/team/members/AddTeamMember';
+
 import { Separator } from '~/components/ui/separator';
-import LeaveTeamModal from '~/components/team/members/LeaveTeamModal';
 import { toast } from 'sonner';
+
+import type { teamMemberWithUserFk } from '~/types/types';
+import TeamMembersTable from '~/components/team/members/TeamMembersTable';
+import AddTeamMember from '~/components/team/members/AddTeamMember';
+import LeaveTeamModal from '~/components/team/members/LeaveTeamModal';
 import EditTeamModal from '~/components/team/EditTeamModal';
 import DeleteTeamModal from '~/components/team/DeleteTeamModal';
 
@@ -18,7 +20,6 @@ type Props = {
 }
 
 export default async function TeamMembers ({ params }: Props) {
-  // const { team, teamMembers, user } = await fetchData({ params });
   const team = await db.team.findFirst({where: {teamId: params.id}})
   if (!team) redirect("/");
 
