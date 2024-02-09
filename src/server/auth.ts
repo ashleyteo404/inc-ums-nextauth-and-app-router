@@ -1,12 +1,10 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { User, Prisma } from "@prisma/client";
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
-import GitHubProvider from "next-auth/providers/github";
+
 import CredentialsProvider from "next-auth/providers/credentials";
 
 import { env } from "~/env";
@@ -111,7 +109,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user: User = await db.user.findUnique({
+        const user = await db.user.findUnique({
           where: {
             email: email
           }
