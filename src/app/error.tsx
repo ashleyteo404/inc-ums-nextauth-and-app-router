@@ -8,6 +8,7 @@ export default function Error({
 }: {
   error: Error & { digest?: string }
 }) { 
+  console.error(error);
   return (
     <div> 
         <div className="flex flex-col items-center justify-center">
