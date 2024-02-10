@@ -79,14 +79,6 @@ export const authOptions: NextAuthOptions = {
   },
   adapter: PrismaAdapter(db),
   providers: [
-    // DiscordProvider({
-    //   clientId: env.DISCORD_CLIENT_ID,
-    //   clientSecret: env.DISCORD_CLIENT_SECRET,
-    // }),
-    // GitHubProvider({
-    //   clientId: env.GITHUB_ID,
-    //   clientSecret: env.GITHUB_SECRET,
-    // }),
     CredentialsProvider({
       // The name to display on the sign in form (e.g. "Sign in with...")
       name: "Credentials",
@@ -98,7 +90,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "Email", placeholder: "johndoe@example.com" },
         password: { label: "Password", type: "Password" }
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         // Add logic here to look up the user from the credentials supplied
         const { email, password } = credentials as {
           email: string;
