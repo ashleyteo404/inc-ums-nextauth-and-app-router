@@ -12,7 +12,7 @@ import {
 
 export default async function profile () {
   const session = await getServerSession(authOptions);
-  if (!session) redirect("/api/auth/signin");
+  if (!session) redirect("/signIn");
   
   const teams = await api.team.getUserTeam.query({ userId: session.user.id });
 

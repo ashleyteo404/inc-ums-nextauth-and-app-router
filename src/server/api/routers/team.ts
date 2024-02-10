@@ -94,7 +94,7 @@ const teamRouter = createTRPCRouter({
         });
         return { id: team.teamId };
       } catch (error) {
-        throw new Error("Failed to update team :(");
+        throw error;
       }
     }),
   
@@ -125,7 +125,7 @@ const teamRouter = createTRPCRouter({
   
         return;
       } catch (error) {
-        throw new Error("Failed to delete team :(");
+        throw error;
       }
     }),
 

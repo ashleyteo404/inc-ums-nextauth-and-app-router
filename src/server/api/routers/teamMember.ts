@@ -124,7 +124,7 @@ const teamMemberRouter = createTRPCRouter({
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
           throw new Error("Member is already in team :(");
         } else {
-          throw new Error("Failed to add member to team :(");
+          throw error;
         }
       }
     }),
@@ -158,7 +158,7 @@ const teamMemberRouter = createTRPCRouter({
         }
         return { success: true };
       } catch (error) {
-        throw new Error("Failed to update admin status of member :(");
+        throw error;
       }
     }),
 
@@ -187,7 +187,7 @@ const teamMemberRouter = createTRPCRouter({
         }
         return { success: true };
       } catch (error) {
-        throw new Error("Failed to remove member from team :(");
+        throw error;
       }
     }),
 
@@ -208,7 +208,7 @@ const teamMemberRouter = createTRPCRouter({
           throw new Error("Team member not found :(");
         }
 
-        // delete team if there are no remaining member
+        // delete team if there are no remaining members
         const remainingTeamMembers = await ctx.db.teamMember.findMany({
           where: {
             teamId: removedTeamMember.teamId
@@ -223,7 +223,7 @@ const teamMemberRouter = createTRPCRouter({
         }
         return { success: true };
       } catch (error) {
-        throw new Error("Failed to remove member from team :(");
+        throw error;
       }
     }),
 });

@@ -16,7 +16,6 @@ import { api } from "~/trpc/react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { TRPCClientError } from "@trpc/client";
-import { useSession } from "next-auth/react";
 
 type Props = {
     teamId: string
@@ -24,7 +23,6 @@ type Props = {
 
 export default function DeleteTeamModal({ teamId }: Props) {
   const router = useRouter();
-  const { data: session } = useSession();
 
   const deleteTeam = api.team.deleteTeam.useMutation();
 
@@ -33,7 +31,7 @@ export default function DeleteTeamModal({ teamId }: Props) {
         loading: "Deleting team...",
         success:  () => {
             // Reload the page upon successful submission
-            router.replace(`/profile/${session?.user.id}`);
+            router.refresh();
             return "Team deleted :)";
         },
         error: (error) => { 

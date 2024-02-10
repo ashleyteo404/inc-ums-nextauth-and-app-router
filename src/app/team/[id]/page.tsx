@@ -43,7 +43,7 @@ export default async function TeamMembers ({ params }: Props) {
         <div className="flex justify-between items-center m-4">
           <div className="flex items-center">
             <h1 className="font-bold text-4xl m-4">{team.name}</h1>
-            <EditTeamModal team={team} />
+            {user.role !== "normal" && <EditTeamModal team={team} />}
           </div>
           <div className="flex items-center space-x-3">
             {user.role === "owner" && (<DeleteTeamModal teamId={team.teamId} />)}
