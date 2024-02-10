@@ -5,14 +5,14 @@ export default {
   config(_input) {
     return {
       name: "inc-ums-nextauth-and-app-router",
-      region: "us-east-1",
+      region: "ap-southeast-1",
     };
   },
   stacks(app) {
     app.stack(function Site({ stack }) {
       const site = new NextjsSite(stack, "site", {
         environment: {
-          DATABASE_URL: process.env.DATABASE_URL,
+          DATABASE_URL: process.env.DATABASE_URL!,
         }
       });
 
