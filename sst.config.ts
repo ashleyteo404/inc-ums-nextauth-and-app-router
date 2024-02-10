@@ -9,6 +9,7 @@ export default {
     };
   },
   stacks(app) {
+    app.setDefaultRemovalPolicy("destroy");
     app.stack(function Site({ stack }) {
       const site = new NextjsSite(stack, "site", {
         environment: {
