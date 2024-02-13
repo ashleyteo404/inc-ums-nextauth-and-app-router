@@ -5,6 +5,13 @@
 await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+    webpack: (config, options) => {
+        if (!options.dev) {
+            config.devtool = "source-map";
+          }
+          return config;
+        },
+};
 
 export default config;
